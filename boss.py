@@ -41,9 +41,9 @@ class Boss(pygame.sprite.Sprite):
                 bullet = Bullet(self.rect.midbottom, 0, 'enemy', velocity=(vx, vy))
                 bullets_group.add(bullet)
 
-    # def hit(self):
-    #     self.health -= 1
-    #     if self.health <= 0:
-    #         self.kill()
-    #         return True
-    #     return False 
+    def hit(self):
+        self.health -= 1
+        if self.health <= 0:
+            self.kill()
+            return True
+        return False 
