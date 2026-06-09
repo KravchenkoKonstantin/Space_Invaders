@@ -29,7 +29,7 @@ class WaveManager:
             for col in range(cols):
                 x = 80 + col * 50
                 y = 50 + row * 50
-                # Распределение типов врагов
+
                 if self.wave_number <= 2:
                     enemy = Enemy((x, y), 'basic')
                 elif row == 0 and self.wave_number % 2 == 0:

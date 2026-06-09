@@ -8,7 +8,6 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos, enemy_type='basic'):
         super().__init__()
         self.enemy_type = enemy_type
-        # Загрузка графики по типу
         try:
             img_path = ENEMY_IMGS.get(enemy_type, ENEMY_IMGS['basic'])
             self.image = pygame.image.load(img_path).convert_alpha()
@@ -24,7 +23,6 @@ class Enemy(pygame.sprite.Sprite):
                 pygame.draw.rect(self.image, CYAN, (0, 0, 40, 30))
                 pygame.draw.polygon(self.image, WHITE, [(20, 5), (5, 25), (35, 25)])
         self.rect = self.image.get_rect(topleft=pos)
-        # Здоровье
         self.health = 2 if enemy_type == 'armored' else 1
         self.can_shoot = True
         self.shoot_prob = ENEMY_SHOOT_PROB
@@ -36,7 +34,6 @@ class Enemy(pygame.sprite.Sprite):
             self.shoot(bullets_group, player_pos)
 
     def shoot(self, bullets_group, player_pos):
-        """Умный выстрел в сторону игрока"""
         if player_pos:
             dx = player_pos[0] - self.rect.centerx
             dy = player_pos[1] - self.rect.centery

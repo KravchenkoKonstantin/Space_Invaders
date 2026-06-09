@@ -4,34 +4,36 @@ import os
 HIGHSCORE_FILE = "highscore.json"
 
 def load_highscore():
-    if os.path.exists(HIGHSCORE_FILE):
-        with open(HIGHSCORE_FILE, 'r') as f:
-            data = json.load(f)
-            return data.get('highscore', 0)
+    data = load_leaderboard()
+    if data:
+        return data[0]
     return 0
 
-def save_highscore(score):
-    current = load_highscore()
-    if score > current:
-        with open(HIGHSCORE_FILE, 'w') as f:
-            json.dump({'highscore': score}, f)
-        return True
-    return False
-import os
-
-HIGHSCORE_FILE = "highscore.json"
-
-def load_highscore():
-    if os.path.exists(HIGHSCORE_FILE):
+def load_leaderboard():
+    if not os.path.exists(HIGHSCORE_FILE):
+        return []
+    try:
         with open(HIGHSCORE_FILE, 'r') as f:
-            data = json.load(f)
-            return data.get('highscore', 0)
-    return 0
+            content = f.read().strip()
+            if not content:
+                return []
+            data = json.loads(content)
+            scores = data.get('scores', [])
+            if not isinstance(scores, list):
+                return []
+            scores.sort(reverse=True)
+            return scores[:5]
+    except (json.JSONDecodeError, ValueError):
+        return []
 
 def save_highscore(score):
-    current = load_highscore()
-    if score > current:
+    scores = load_leaderboard()
+    scores.append(score)
+    scores.sort(reverse=True)
+    scores = scores[:5]
+    try:
         with open(HIGHSCORE_FILE, 'w') as f:
-            json.dump({'highscore': score}, f)
-        return True
-    return False
+            json.dump({'scores': scores}, f)
+    except IOError:
+        pass 
+    return len(scores) > 0 and score == scores[0]

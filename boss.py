@@ -7,7 +7,6 @@ from bullet import Bullet
 class Boss(pygame.sprite.Sprite):
     def __init__(self, wave_number):
         super().__init__()
-        # Загрузка графики босса
         try:
             self.image = pygame.image.load(BOSS_IMG).convert_alpha()
         except:
@@ -22,12 +21,10 @@ class Boss(pygame.sprite.Sprite):
         self.direction = 1
 
     def update(self, bullets_group, player_pos):
-        # Горизонтальное движение
         self.rect.x += self.direction * self.move_speed
         if self.rect.right >= SCREEN_WIDTH or self.rect.left <= 0:
             self.direction *= -1
 
-        # Веерная стрельба
         now = pygame.time.get_ticks()
         if now - self.shoot_timer > 800:
             self.shoot_timer = now

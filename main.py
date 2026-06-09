@@ -1,12 +1,12 @@
 import pygame
-import sys 
-import random
+import sys
 from settings import *
 from player import Player
 from wave import WaveManager
 from effects import spawn_particles
-from ui import draw_ui, draw_menu, draw_game_over
-from highscore import load_highscore, save_highscore
+from ui import (Button, draw_ui, draw_menu_screen, draw_leaderboard_screen,
+                draw_game_over)
+from highscore import load_highscore, load_leaderboard, save_highscore
 
 def main():
     pygame.init()
@@ -15,7 +15,6 @@ def main():
     pygame.display.set_caption("Space Invaders")
     clock = pygame.time.Clock()
 
-    # Загрузка фона
     try:
         bg_image = pygame.image.load(BACKGROUND_IMG).convert()
         bg_image = pygame.transform.scale(bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -24,12 +23,19 @@ def main():
         bg_image.fill(BLACK)
 
 
-    # Состояния
     state = "MENU"
     score = 0
     highscore = load_highscore()
 
-    # Игровые объекты
+    btn_width, btn_height = 220, 60
+    cx = SCREEN_WIDTH // 2 - btn_width // 2
+    start_btn = Button(cx, 250, btn_width, btn_height, "Старт", GREEN, (0, 200, 0))
+    leaderboard_btn = Button(cx, 340, btn_width, btn_height, "Топ лидеров", BLUE, (0, 100, 200))
+    quit_btn = Button(cx, 430, btn_width, btn_height, "Выход", RED, (200, 0, 0))
+    menu_buttons = [start_btn, leaderboard_btn, quit_btn]
+
+    back_btn = Button(cx, 480, btn_width, btn_height, "Назад", (100, 100, 100), (150, 150, 150))
+
     player = None
     wave_manager = None
     all_sprites = None
@@ -55,25 +61,45 @@ def main():
     running = True
     while running:
         dt = clock.tick(FPS)
+        mouse_pos = pygame.mouse.get_pos()
 
-        # События
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    if state == "LEADERBOARD":
+                        state = "MENU"
+                    elif state == "GAME_OVER":
+                        state = "MENU"
+
             if state == "MENU":
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:
-                        start_game()
-                    if event.key == pygame.K_q:
-                        running = False
+                for btn in menu_buttons:
+                    btn.update(mouse_pos)
+                    if btn.handle_event(event):
+                        if btn == start_btn:
+                            start_game()
+                        elif btn == leaderboard_btn:
+                            state = "LEADERBOARD"
+                        elif btn == quit_btn:
+                            running = False
+
+            elif state == "LEADERBOARD":
+                back_btn.update(mouse_pos)
+                if back_btn.handle_event(event):
+                    state = "MENU"
+
             elif state == "GAME_OVER":
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         start_game()
-                    if event.key == pygame.K_q:
-                        running = False
+                    elif event.key == pygame.K_q:
+                        state = "MENU"
 
-        # Логика игры
+            elif state == "PLAYING":
+                pass
+
         if state == "PLAYING":
             keys = pygame.key.get_pressed()
             player.update(keys, player_bullets)
@@ -81,7 +107,7 @@ def main():
             status = wave_manager.update(enemy_bullets, player.rect.center)
             if status == 'game_over':
                 state = "GAME_OVER"
-                save_highscore(score)
+                new_high = save_highscore(score)
                 if score > highscore:
                     highscore = score
 
@@ -89,17 +115,14 @@ def main():
             enemy_bullets.update()
             particles.update()
 
-            # Пули игрока против врагов
             hits = pygame.sprite.groupcollide(wave_manager.enemies, player_bullets, False, True)
             for enemy, bullets in hits.items():
                 enemy.health -= len(bullets)
                 if enemy.health <= 0:
                     enemy.kill()
                     score += 10
-
                     spawn_particles(particles, enemy.rect.center, ORANGE, 10, 3, 300)
 
-            # Пули игрока против босса
             if wave_manager.boss:
                 hits_boss = pygame.sprite.spritecollide(wave_manager.boss, player_bullets, True)
                 for _ in hits_boss:
@@ -109,35 +132,33 @@ def main():
                         wave_manager.boss.kill()
                         wave_manager.boss = None
                         score += 100
-
                     else:
                         spawn_particles(particles, wave_manager.boss.rect.center, WHITE, 3, 2, 200)
 
-            # Вражеские пули против игрока
             hits_player = pygame.sprite.spritecollide(player, enemy_bullets, True)
             if hits_player:
-                if player.hit(): 
+                if player.hit():
                     if player.lives <= 0:
                         state = "GAME_OVER"
-                        save_highscore(score)
+                        new_high = save_highscore(score)
                         if score > highscore:
                             highscore = score
                     else:
                         spawn_particles(particles, player.rect.center, GREEN, 5, 2, 200)
 
-            # Уничтожение пуль друг об друга
             pygame.sprite.groupcollide(enemy_bullets, player_bullets, True, True)
-
 
             if len(wave_manager.enemies) == 0 and not wave_manager.boss:
                 wave_manager.start_new_wave()
                 score += 50 * wave_manager.wave_number
 
-        # Рендеринг
         screen.blit(bg_image, (0, 0))
 
         if state == "MENU":
-            draw_menu(screen, highscore)
+            draw_menu_screen(screen, menu_buttons)
+        elif state == "LEADERBOARD":
+            leaderboard_scores = load_leaderboard()
+            draw_leaderboard_screen(screen, leaderboard_scores, back_btn)
         elif state == "PLAYING":
             all_sprites.draw(screen)
             wave_manager.enemies.draw(screen)

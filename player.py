@@ -5,7 +5,6 @@ from bullet import Bullet
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
-        # Загрузка изображения игрока
         try:
             self.original_image = pygame.image.load(PLAYER_IMG).convert_alpha()
         except:
@@ -19,20 +18,17 @@ class Player(pygame.sprite.Sprite):
         self.last_shot_time = 0
 
     def update(self, keys, bullets_group):
-        # Движение
         if keys[pygame.K_LEFT] and self.rect.left > 0:
             self.rect.x -= self.speed
         if keys[pygame.K_RIGHT] and self.rect.right < SCREEN_WIDTH:
             self.rect.x += self.speed
 
-        # Стрельба с кулдауном
         if keys[pygame.K_SPACE]:
             now = pygame.time.get_ticks()
             if now - self.last_shot_time > PLAYER_SHOOT_COOLDOWN:
                 self.shoot(bullets_group)
                 self.last_shot_time = now
 
-        # Мерцание при неуязвимости
         if pygame.time.get_ticks() < self.invincible_until:
             if (pygame.time.get_ticks() // 100) % 2 == 0:
                 self.image.set_alpha(128)
