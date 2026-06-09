@@ -22,6 +22,13 @@ def main():
         bg_image = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         bg_image.fill(BLACK)
 
+    try:
+        heart_img = pygame.image.load(HEART_IMG).convert_alpha()
+        HEART_SIZE = 30
+        heart_img = pygame.transform.scale(heart_img, (HEART_SIZE, HEART_SIZE))
+    except:
+        heart_img = None
+
 
     state = "MENU"
     score = 0
@@ -29,12 +36,16 @@ def main():
 
     btn_width, btn_height = 220, 60
     cx = SCREEN_WIDTH // 2 - btn_width // 2
-    start_btn = Button(cx, 250, btn_width, btn_height, "Старт", GREEN, (0, 200, 0))
-    leaderboard_btn = Button(cx, 340, btn_width, btn_height, "Топ лидеров", BLUE, (0, 100, 200))
-    quit_btn = Button(cx, 430, btn_width, btn_height, "Выход", RED, (200, 0, 0))
+
+    btn_color = (128, 0, 128)
+    btn_hover = (170, 0, 170)
+
+    start_btn = Button(cx, 250, btn_width, btn_height, "Старт", btn_color, btn_hover)
+    leaderboard_btn = Button(cx, 340, btn_width, btn_height, "Топ лидеров", btn_color, btn_hover)
+    quit_btn = Button(cx, 430, btn_width, btn_height, "Выход", btn_color, btn_hover)
     menu_buttons = [start_btn, leaderboard_btn, quit_btn]
 
-    back_btn = Button(cx, 480, btn_width, btn_height, "Назад", (100, 100, 100), (150, 150, 150))
+    back_btn = Button(cx, 480, btn_width, btn_height, "Назад", btn_color, btn_hover)
 
     player = None
     wave_manager = None
@@ -167,7 +178,7 @@ def main():
             player_bullets.draw(screen)
             enemy_bullets.draw(screen)
             particles.draw(screen)
-            draw_ui(screen, score, player.lives, wave_manager.wave_number)
+            draw_ui(screen, score, player.lives, wave_manager.wave_number, heart_img)
         elif state == "GAME_OVER":
             if all_sprites:
                 all_sprites.draw(screen)

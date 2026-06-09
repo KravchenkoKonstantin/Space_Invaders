@@ -13,7 +13,7 @@ class Button:
     def draw(self, surface):
         color = self.hover_color if self.is_hovered else self.color
         pygame.draw.rect(surface, color, self.rect, border_radius=12)
-        pygame.draw.rect(surface, WHITE, self.rect, 2, border_radius=12)  # рамка
+        pygame.draw.rect(surface, WHITE, self.rect, 2, border_radius=12)
         font = pygame.font.Font(None, 40)
         text_surf = font.render(self.text, True, self.text_color)
         text_rect = text_surf.get_rect(center=self.rect.center)
@@ -40,7 +40,7 @@ def draw_text(surface, text, size, color, x, y, center=True):
 
 def draw_menu_screen(surface, buttons):
     surface.fill(BLACK)
-    draw_text(surface, "Space Invaders", 64, GREEN, SCREEN_WIDTH//2, 120)
+    draw_text(surface, "Space Invaders", 64, (128, 0, 128), SCREEN_WIDTH//2, 120)
     for btn in buttons:
         btn.draw(surface)
 
@@ -55,10 +55,21 @@ def draw_leaderboard_screen(surface, scores, back_button):
             draw_text(surface, f"{i+1}. {sc}", 36, WHITE, SCREEN_WIDTH//2, y)
     back_button.draw(surface)
 
-def draw_ui(surface, score, lives, wave):
+def draw_ui(surface, score, lives, wave, heart_img=None):
+    """Очки, сердечки жизней и номер волны."""
     draw_text(surface, f"Очки: {score}", 30, WHITE, 70, 20, center=False)
-    draw_text(surface, f"Жизни: {lives}", 30, WHITE, SCREEN_WIDTH - 70, 20, center=False)
     draw_text(surface, f"Волна: {wave}", 30, WHITE, SCREEN_WIDTH // 2, 20)
+
+    if heart_img:
+        heart_w = heart_img.get_width()
+        gap = 5
+        start_x = SCREEN_WIDTH - 10 - heart_w
+        y = 10
+        for i in range(lives):
+            x = start_x - i * (heart_w + gap)
+            surface.blit(heart_img, (x, y))
+    else:
+        draw_text(surface, f"Жизни: {lives}", 30, WHITE, SCREEN_WIDTH - 70, 20, center=False)
 
 def draw_game_over(surface, score, highscore, new_high):
     overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
